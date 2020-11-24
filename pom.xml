@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>telegram-template-bot</artifactId>
+    <artifactId>telegram-bot-main</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>telegram-bot-itcluster</name>
+    <name>telegram-bot-main</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -45,7 +45,7 @@
                     <!--                    <version>3.0.4</version>-->
                     <configuration>
                         <jdkVersion>11</jdkVersion>
-                        <appName>telegram-bot-23112020</appName>
+                        <appName>telegram-bot-main</appName>
                         <processTypes>
                             <web>java $JAVA_OPTS -cp target/classes:target/dependency/* org.example.Launcher</web>
                         </processTypes>
