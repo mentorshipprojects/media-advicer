@@ -7,8 +7,7 @@ script:
   - mvn sonar:sonar
 cache:
   directories:
-    - "$HOME/.m2/repository"
-    - "$HOME/.sonar/cache"
+    - "$HOME/travis"
 
 deploy:
   provider: script
