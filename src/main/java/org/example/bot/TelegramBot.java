@@ -27,8 +27,11 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 
 @Slf4j
@@ -38,7 +41,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static final String clientSecret = "7872f86638ce4ddd9110375a259475a2";
     private static final String refreshToken = "AQCBtIIVK2---NNDMDVDfTxloJ8SZuHH7KHMQTXpv1N3TsjaqrOMGlUwCE6shxwhJ2bavJxijmlCFA6jMBE2u4MlFEXl7CH_2l750mOIWakWgRFWhfBJhCCNKTIHz36e11s";
     private static final String accessToken = "BQDNRqxqeYukffZlQgug446Apkp1qUgEPlctR7-kVBdpkMbaSP1QpQ4rxh0Cikon-QqQO7V-jUFGwNGhYTa_gCcrM5O0rJumYoPZ5NrrJ4VUQOpFDwQkCeKnygyEvVhDDbtGUSZdWR0bgIAPTKB3u559K8CqGm7rBQ";
-    private static final String userId = "rs3xj4qq1aae0yd1o4nqwwhyz";
 //    private static final String trackId = "01iyCAUm8EvOFqVWYJ3dVX";
     //private static final String trackUrl = "https://open.spotify.com/album/79ZX48114T8NH36MnOTtl7?highlight=spotify:track:" + trackId + "01iyCAUm8EvOFqVWYJ3dVX";
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
@@ -69,12 +71,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 KeyboardRow row = new KeyboardRow();
 
-                row.add("Music");
+                row.add("Музика");
                 keyboard.add(row);
                 keyboardMarkup.setKeyboard(keyboard);
                 message.setReplyMarkup(keyboardMarkup);
 
-                row.add("Films");
+                row.add("Фільми");
                 keyboardMarkup.setKeyboard(keyboard);
                 message.setReplyMarkup(keyboardMarkup);
 
@@ -84,7 +86,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
 
-            } else if (searchText.equals("Music")) {
+            } else if (searchText.equals("Музика")) {
                 try {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
@@ -110,7 +112,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 try {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText("Введіть назву або id");
+                            .setText("Введіть назву пісні");
                     execute(message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
@@ -118,26 +120,21 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             }
 
-            else if (searchText.matches("\\$[^\\$]*+\\$")){     //Problem With Regular Expression
+
+
+            else if (searchText.matches("(.*?)\\s-\\s(.*)")){
                 String id = update.getMessage().getText();
-                String trackUrl = "https://open.spotify.com/search/" + id;
+                String trackUrl = "https://open.spotify.com/search/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
+                //ArrayList<String> listenedSongs = new ArrayList<String>();
+//                for (int i = 0; i <= listenedSongs.size(); i++) {
+//                    listenedSongs.add(trackUrl);
+//                }
                 try {
-
-                    final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-
-                    spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText(trackUrl);
+                            .setText("Пісня: " + trackUrl);
                     execute(message);
 
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                } catch (SpotifyWebApiException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
@@ -154,30 +151,38 @@ public class TelegramBot extends TelegramLongPollingBot {
 
 
 
-            else if (searchText.equals("Прослухані пісні")){     //Problem with getting listened songs
-                try {
-                    final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-                    spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-
-                    GetCurrentUsersRecentlyPlayedTracksRequest getCurrentUsersRecentlyPlayedTracksRequest = spotifyApi.getCurrentUsersRecentlyPlayedTracks().build();
-                    PagingCursorbased<PlayHistory> playHistoryPagingCursorbased = getCurrentUsersRecentlyPlayedTracksRequest.execute();
-
-                    SendMessage message = new SendMessage()
-                            .setChatId(chatId)
-                            .setText("Останні прослухані пісні: " + playHistoryPagingCursorbased.getHref());
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                } catch (SpotifyWebApiException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+//            else if (searchText.equals("Прослухані пісні")){     //Problem with getting listened songs
+//                try {
+//                    final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+//                    spotifyApi.setAccessToken(clientCredentials.getAccessToken());
+//                    String id = update.getMessage().getText();
+//                    String trackUrl = "https://open.spotify.com/search/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
+//                    ArrayList<String> listenedSongs = new ArrayList<>();
+//                    listenedSongs.add(trackUrl);
+////                    GetCurrentUsersRecentlyPlayedTracksRequest getCurrentUsersRecentlyPlayedTracksRequest = spotifyApi.getCurrentUsersRecentlyPlayedTracks().build();
+////                    PagingCursorbased<PlayHistory> playHistoryPagingCursorbased = getCurrentUsersRecentlyPlayedTracksRequest.execute();
+////                    ArrayList<String> listened = new ArrayList<>();
+////                    listened.add(trackUrl);
+//                    SendMessage message = new SendMessage()
+//                            .setChatId(chatId)
+//                            .setText("Останні прослухані пісні: "  + listenedSongs);
+//                    execute(message);
+//                } catch (TelegramApiException e) {
+//                    e.printStackTrace();
+//                } catch (ParseException e) {
+//                    e.printStackTrace();
+//                } catch (SpotifyWebApiException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
         }
     }
+
+
+
+
 
     public String getBotUsername() {
         return "TelegramFilmMusicBot2";
