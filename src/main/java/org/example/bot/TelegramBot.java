@@ -1,4 +1,6 @@
 package org.example.bot;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonParser;
 import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
@@ -9,11 +11,13 @@ import com.wrapper.spotify.requests.authorization.client_credentials.ClientCrede
 import com.wrapper.spotify.requests.data.player.GetCurrentUsersRecentlyPlayedTracksRequest;
 import com.wrapper.spotify.requests.data.search.simplified.SearchTracksRequest;
 import com.wrapper.spotify.requests.data.tracks.GetTrackRequest;
+import lombok.experimental.Helper;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.hc.core5.http.ParseException;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.commands.GetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -21,6 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,7 +43,7 @@ import java.util.List;
 
 @Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
-
+    private static ObjectMapper mapper = new ObjectMapper();
     private static final String clientId = "5d68dc795c8f4b138341afa848dddffe";
     private static final String clientSecret = "7872f86638ce4ddd9110375a259475a2";
     private static final String refreshToken = "AQCBtIIVK2---NNDMDVDfTxloJ8SZuHH7KHMQTXpv1N3TsjaqrOMGlUwCE6shxwhJ2bavJxijmlCFA6jMBE2u4MlFEXl7CH_2l750mOIWakWgRFWhfBJhCCNKTIHz36e11s";
@@ -104,6 +109,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     KeyboardRow row = new KeyboardRow();
                     row.add("Знайти пісню");
                     row.add("Створити плейлист");
+                    row.add("Прослухані пісні");
                     keyboard.add(row);
                     keyboardMarkup.setKeyboard(keyboard);
                     message.setReplyMarkup(keyboardMarkup);
@@ -127,18 +133,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
 
             }
-
+    
 
 
             else if (searchText.matches("(.*?)\\s-\\s(.*)")){
                 String id = update.getMessage().getText();
                 String trackUrl = "https://open.spotify.com/search/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
                 try {
-                    if (searchText.equals("Прослухані пісні")){
-                        for (int i = 0; i <= listenedSongs.length; i++) {
-                            listenedSongs[i] = trackUrl;
-                        }
-                    }
+
 
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
@@ -150,7 +152,22 @@ public class TelegramBot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-
+            else if (searchText.equals("Прослухані пісні")){
+                SendMessage message = new SendMessage();
+                message.setChatId(chatId);
+                message.setText("Прослухані пісні");
+                GetMyCommands listenedSongs1 = new GetMyCommands();
+                try {
+                    String jsonInString = mapper.writeValueAsString(listenedSongs1);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
 
 
 
