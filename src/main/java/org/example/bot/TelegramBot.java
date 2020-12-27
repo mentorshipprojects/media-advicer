@@ -1,5 +1,6 @@
 package org.example.bot;
 import com.google.gson.JsonParser;
+import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.credentials.ClientCredentials;
@@ -29,6 +30,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -41,12 +43,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static final String clientSecret = "7872f86638ce4ddd9110375a259475a2";
     private static final String refreshToken = "AQCBtIIVK2---NNDMDVDfTxloJ8SZuHH7KHMQTXpv1N3TsjaqrOMGlUwCE6shxwhJ2bavJxijmlCFA6jMBE2u4MlFEXl7CH_2l750mOIWakWgRFWhfBJhCCNKTIHz36e11s";
     private static final String accessToken = "BQDNRqxqeYukffZlQgug446Apkp1qUgEPlctR7-kVBdpkMbaSP1QpQ4rxh0Cikon-QqQO7V-jUFGwNGhYTa_gCcrM5O0rJumYoPZ5NrrJ4VUQOpFDwQkCeKnygyEvVhDDbtGUSZdWR0bgIAPTKB3u559K8CqGm7rBQ";
-//    private static final String trackId = "01iyCAUm8EvOFqVWYJ3dVX";
-    //private static final String trackUrl = "https://open.spotify.com/album/79ZX48114T8NH36MnOTtl7?highlight=spotify:track:" + trackId + "01iyCAUm8EvOFqVWYJ3dVX";
     private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
             .setClientId(clientId)
             .setClientSecret(clientSecret)
-
             .setRefreshToken(refreshToken)
             .setAccessToken(accessToken)
             .build();
@@ -54,7 +53,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             .build();
 
     public synchronized void onUpdateReceived(Update update) {
-
+        String[] listenedSongs = new String[]{};
 
         if (update.hasMessage() && update.getMessage().hasText()) {
             String searchText = update.getMessage().getText();
@@ -64,9 +63,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (searchText.equals("/start")) {
                 SendMessage message = new SendMessage()
                         .setChatId(chatId)
-                        .setText("Бот для пошуку музики");
+                        .setText(EmojiParser.parseToUnicode(":wave:Бот для пошуку музики:wave:"));
 
                 ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+                message.enableMarkdown(true);
+                keyboardMarkup.setSelective(true);
+                keyboardMarkup.setResizeKeyboard(true);
+                keyboardMarkup.setOneTimeKeyboard(false);
                 List<KeyboardRow> keyboard = new ArrayList<>();
 
                 KeyboardRow row = new KeyboardRow();
@@ -90,13 +93,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                 try {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText("Listened songs");
+                            .setText(EmojiParser.parseToUnicode(":musical_note:"));
                     ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-
+                    message.enableMarkdown(true);
+                    keyboardMarkup.setSelective(true);
+                    keyboardMarkup.setResizeKeyboard(true);
+                    keyboardMarkup.setOneTimeKeyboard(false);
                     List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
+
                     KeyboardRow row = new KeyboardRow();
                     row.add("Знайти пісню");
-                    row.add("Прослухані пісні");
+                    row.add("Створити плейлист");
                     keyboard.add(row);
                     keyboardMarkup.setKeyboard(keyboard);
                     message.setReplyMarkup(keyboardMarkup);
@@ -109,10 +116,11 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
 
             else if (searchText.equals("Знайти пісню")){
+
                 try {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText("Введіть назву пісні");
+                            .setText(EmojiParser.parseToUnicode(":musical_note:Введіть назву пісні:musical_note:"));
                     execute(message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
@@ -125,14 +133,17 @@ public class TelegramBot extends TelegramLongPollingBot {
             else if (searchText.matches("(.*?)\\s-\\s(.*)")){
                 String id = update.getMessage().getText();
                 String trackUrl = "https://open.spotify.com/search/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
-                //ArrayList<String> listenedSongs = new ArrayList<String>();
-//                for (int i = 0; i <= listenedSongs.size(); i++) {
-//                    listenedSongs.add(trackUrl);
-//                }
                 try {
+                    if (searchText.equals("Прослухані пісні")){
+                        for (int i = 0; i <= listenedSongs.length; i++) {
+                            listenedSongs[i] = trackUrl;
+                        }
+                    }
+
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText("Пісня: " + trackUrl);
+                            .setText(EmojiParser.parseToUnicode(":headphones: Пісня: " + trackUrl + " :headphones:"));
+
                     execute(message);
 
                 } catch (TelegramApiException e) {
