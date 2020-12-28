@@ -3,8 +3,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import com.wrapper.spotify.requests.data.playlists.CreatePlaylistRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.ParseException;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.GetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -16,6 +20,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.example.repository.ProfileRepositoryImpl;
+
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -208,7 +214,28 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
 
+            else if (searchText.equals("Створити плейлист")){
+                try {
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText(EmojiParser.parseToUnicode(":wave:Введіть назву плейлиста:wave:"));
+                    execute(message);
+                    final String userId ="5kvjla0bhzuuls978uxcyakel";
+                    final String name = update.getMessage().getText();
+                    final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, name)
+                            .build();
 
+                    try {
+                        final Playlist playlist = createPlaylistRequest.execute();
+
+                        System.out.println("Name: " + playlist.getName());
+                    } catch (IOException | SpotifyWebApiException | ParseException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
 
 
 
