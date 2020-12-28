@@ -1,21 +1,10 @@
 package org.example.bot;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonParser;
 import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
-import com.wrapper.spotify.exceptions.SpotifyWebApiException;
-import com.wrapper.spotify.model_objects.credentials.ClientCredentials;
-import com.wrapper.spotify.model_objects.specification.*;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
-import com.wrapper.spotify.requests.data.player.GetCurrentUsersRecentlyPlayedTracksRequest;
-import com.wrapper.spotify.requests.data.search.simplified.SearchTracksRequest;
-import com.wrapper.spotify.requests.data.tracks.GetTrackRequest;
-import lombok.experimental.Helper;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.hc.core5.http.ParseException;
-
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.GetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -23,19 +12,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
+import org.example.repository.ProfileRepositoryImpl;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -57,14 +40,36 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static final ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
             .build();
 
+
+
+
+
+
+
+
+
+
     public synchronized void onUpdateReceived(Update update) {
-        String[] listenedSongs = new String[]{};
-
+        ProfileRepositoryImpl profile = new ProfileRepositoryImpl();
         if (update.hasMessage() && update.getMessage().hasText()) {
+
+
             String searchText = update.getMessage().getText();
-
-
             long chatId = update.getMessage().getChatId();
+            String answer = "";
+
+            if (searchText.equals("/login")){
+                SendMessage message = new SendMessage()
+                        .setChatId(chatId)
+                        .setText("Введіть ім'я: ");
+                String username = update.getMessage().getText();
+                profile.getUserByUsernameByPassword(username);
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
             if (searchText.equals("/start")) {
                 SendMessage message = new SendMessage()
                         .setChatId(chatId)
@@ -103,15 +108,19 @@ public class TelegramBot extends TelegramLongPollingBot {
                     message.enableMarkdown(true);
                     keyboardMarkup.setSelective(true);
                     keyboardMarkup.setResizeKeyboard(true);
-                    keyboardMarkup.setOneTimeKeyboard(false);
+                    keyboardMarkup.setOneTimeKeyboard(true);
                     List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
 
                     KeyboardRow row = new KeyboardRow();
+
                     row.add("Знайти пісню");
                     row.add("Створити плейлист");
                     row.add("Прослухані пісні");
+                    row.add("Знайти виконавця");
                     keyboard.add(row);
+
                     keyboardMarkup.setKeyboard(keyboard);
+
                     message.setReplyMarkup(keyboardMarkup);
                     execute(message);
 
@@ -152,18 +161,48 @@ public class TelegramBot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
+
+
+
             else if (searchText.equals("Прослухані пісні")){
+                String popular = "https://open.spotify.com/genre/shortcuts";
                 SendMessage message = new SendMessage();
                 message.setChatId(chatId);
-                message.setText("Прослухані пісні");
-                GetMyCommands listenedSongs1 = new GetMyCommands();
-                try {
-                    String jsonInString = mapper.writeValueAsString(listenedSongs1);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                message.setText("Прослухані пісні " + popular);
+
                 try {
                     execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            else if (searchText.equals("Знайти виконавця")){
+
+                try {
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText(EmojiParser.parseToUnicode(":musical_note:Введіть ім'я виконавця:musical_note:"));
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+            else if (searchText.matches("^[\\$_\\w]*$")){
+                String artistName = update.getMessage().getText();
+                String artistUrl = "https://open.spotify.com/search/" + URLEncoder.encode(artistName, StandardCharsets.UTF_8);
+                try {
+
+
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText(EmojiParser.parseToUnicode(":headphones: Виконавець: " + artistUrl + " :headphones:"));
+
+                    execute(message);
+
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }

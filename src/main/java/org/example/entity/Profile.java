@@ -1,15 +1,20 @@
 package org.example.entity;
 
+import org.apache.commons.codec.binary.StringUtils;
+
 import java.util.List;
 
 public class Profile {
 
     private Long chatId;
-    private List<String> musicCategories;
+    private String password;
+    private String username;
 
-    public Profile(Long chatId, List<String> musicCategories) {
+    public Profile(Long chatId, String password, String username) {
         this.chatId = chatId;
-        this.musicCategories = musicCategories;
+
+        this.password = password;
+        this.username = username;
     }
 
     public Long getChatId() {
@@ -19,12 +24,22 @@ public class Profile {
     public void setChatId(Long chatId) {
         this.chatId = chatId;
     }
-
-    public List<String> getMusicCategories() {
-        return musicCategories;
+    public String getPassword() {
+        return password;
     }
 
-    public void setMusicCategories(List<String> musicCategories) {
-        this.musicCategories = musicCategories;
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getUsername(){return username;}
+    public void setUsername(String username){this.username = username;}
+
+    @Override
+    public String toString() {
+        return "Profile{" +
+                "chatId=" + chatId +
+                ", password='" + password + '\'' +
+                ", username='" + username + '\'' +
+                '}';
     }
 }
