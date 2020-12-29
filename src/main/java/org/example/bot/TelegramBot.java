@@ -4,7 +4,9 @@ import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.model_objects.specification.Playlist;
+import com.wrapper.spotify.model_objects.specification.Recommendations;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import com.wrapper.spotify.requests.data.browse.GetRecommendationsRequest;
 import com.wrapper.spotify.requests.data.playlists.CreatePlaylistRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
@@ -41,6 +43,17 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static final ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
             .build();
 
+    private static final GetRecommendationsRequest getRecommendationsRequest = spotifyApi.getRecommendations()
+            //          .limit(10)
+            //          .market(CountryCode.SE)
+            //          .max_popularity(50)
+            //          .min_popularity(10)
+            //          .seed_artists("0LcJLqbBmaGUft1e9Mm8HV")
+            //          .seed_genres("electro")
+            //          .seed_tracks("01iyCAUm8EvOFqVWYJ3dVX")
+            //          .target_popularity(20)
+            .build();
+
     public synchronized void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
 
@@ -49,7 +62,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             long chatId = update.getMessage().getChatId();
             String username = update.getMessage().getText();
 
-            if (username != null && username.contains("1") || username.contains("2") || username.contains("3")) {
+            if (username != null && username.contains("1") || username.contains("2") || username.contains("3") || username.contains("4")) {
                 ProfileRepositoryImpl userRepository = new ProfileRepositoryImpl();
                 Profile user = userRepository.getUserByUsernameByPassword(username);
                 if (user != null) {
@@ -202,7 +215,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
 
+
+
         }
+
     }
 
 
