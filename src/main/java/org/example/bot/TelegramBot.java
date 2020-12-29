@@ -47,11 +47,11 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             String searchText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
-            String name = update.getMessage().getText();
+            String username = update.getMessage().getText();
 
-            if (name != null && name.contains("1") || name.contains("2") || name.contains("3")) {
+            if (username != null && username.contains("1") || username.contains("2") || username.contains("3")) {
                 ProfileRepositoryImpl userRepository = new ProfileRepositoryImpl();
-                Profile user = userRepository.getUserByUsernameByPassword(name);
+                Profile user = userRepository.getUserByUsernameByPassword(username);
                 if (user != null) {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
@@ -221,9 +221,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                             .setText(EmojiParser.parseToUnicode(":wave:Введіть назву плейлиста:wave:"));
                     execute(message);
                     final String userId ="5kvjla0bhzuuls978uxcyakel";
-                    final String playlistName = update.getMessage().getText();
-                    final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, playlistName)
-                            .build();
+                    final String name = update.getMessage().getText();
+                    final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, name).build();
 
                     try {
                         final Playlist playlist = createPlaylistRequest.execute();
@@ -236,7 +235,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-
 
         }
     }
