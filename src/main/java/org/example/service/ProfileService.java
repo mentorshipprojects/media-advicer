@@ -7,5 +7,5 @@ import org.example.entity.Profile;
  */
 public interface ProfileService {
     void createProfile(Profile profile);
-    Profile getProfileByChatId(Long chatId);
+    Profile getProfileByChatId(String username);
 }

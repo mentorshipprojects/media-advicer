@@ -15,3 +15,4 @@ deploy:
   skip_cleanup: true
   on:
     branch: master
+    spring.jpa.hibernate.naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

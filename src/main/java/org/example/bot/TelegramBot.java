@@ -1,21 +1,23 @@
 package org.example.bot;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.vdurmont.emoji.EmojiParser;
 import com.wrapper.spotify.SpotifyApi;
+import com.wrapper.spotify.exceptions.SpotifyWebApiException;
+import com.wrapper.spotify.model_objects.specification.Playlist;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import com.wrapper.spotify.requests.data.playlists.CreatePlaylistRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.ParseException;
+import org.example.entity.Profile;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.commands.GetMyCommands;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.example.repository.ProfileRepositoryImpl;
+
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -26,7 +28,6 @@ import java.util.List;
 
 @Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
-    private static ObjectMapper mapper = new ObjectMapper();
     private static final String clientId = "5d68dc795c8f4b138341afa848dddffe";
     private static final String clientSecret = "7872f86638ce4ddd9110375a259475a2";
     private static final String refreshToken = "AQCBtIIVK2---NNDMDVDfTxloJ8SZuHH7KHMQTXpv1N3TsjaqrOMGlUwCE6shxwhJ2bavJxijmlCFA6jMBE2u4MlFEXl7CH_2l750mOIWakWgRFWhfBJhCCNKTIHz36e11s";
@@ -40,37 +41,39 @@ public class TelegramBot extends TelegramLongPollingBot {
     private static final ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
             .build();
 
-
-
-
-
-
-
-
-
-
     public synchronized void onUpdateReceived(Update update) {
-        ProfileRepositoryImpl profile = new ProfileRepositoryImpl();
         if (update.hasMessage() && update.getMessage().hasText()) {
 
 
             String searchText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
-            String answer = "";
+            String name = update.getMessage().getText();
 
-            if (searchText.equals("/login")){
-                SendMessage message = new SendMessage()
-                        .setChatId(chatId)
-                        .setText("Введіть ім'я: ");
-                String username = update.getMessage().getText();
-                profile.getUserByUsernameByPassword(username);
-                try {
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+            if (name != null && name.contains("1") || name.contains("2") || name.contains("3")) {
+                ProfileRepositoryImpl userRepository = new ProfileRepositoryImpl();
+                Profile user = userRepository.getUserByUsernameByPassword(name);
+                if (user != null) {
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText(EmojiParser.parseToUnicode(":wave:Welcome " + user.getName() + ":wave:"));
+                    try {
+                        execute(message);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText("Ім'я користувача неправильне");
+                    try {
+                        execute(message);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-            if (searchText.equals("/start")) {
+
+            else if (searchText.equals("/start")) {
                 SendMessage message = new SendMessage()
                         .setChatId(chatId)
                         .setText(EmojiParser.parseToUnicode(":wave:Бот для пошуку музики:wave:"));
@@ -142,7 +145,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
 
             }
-    
+
 
 
             else if (searchText.matches("(.*?)\\s-\\s(.*)")){
@@ -168,7 +171,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String popular = "https://open.spotify.com/genre/shortcuts";
                 SendMessage message = new SendMessage();
                 message.setChatId(chatId);
-                message.setText("Прослухані пісні " + popular);
+                message.setText(EmojiParser.parseToUnicode(":minidisc:Прослухані пісні " + popular + ":minidisc:"));
 
                 try {
                     execute(message);
@@ -182,7 +185,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 try {
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText(EmojiParser.parseToUnicode(":musical_note:Введіть ім'я виконавця:musical_note:"));
+                            .setText(EmojiParser.parseToUnicode(":man_singer:Введіть ім'я виконавця:man_singer:"));
                     execute(message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
@@ -191,7 +194,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
 
 
-            else if (searchText.matches("^[\\$_\\w]*$")){
+
+
+
+            else if (searchText.matches("[a-zA-Z]+$")){
                 String artistName = update.getMessage().getText();
                 String artistUrl = "https://open.spotify.com/search/" + URLEncoder.encode(artistName, StandardCharsets.UTF_8);
                 try {
@@ -199,7 +205,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                     SendMessage message = new SendMessage()
                             .setChatId(chatId)
-                            .setText(EmojiParser.parseToUnicode(":headphones: Виконавець: " + artistUrl + " :headphones:"));
+                            .setText(EmojiParser.parseToUnicode(":man_singer: Виконавець: " + artistUrl + " :man_singer:"));
 
                     execute(message);
 
@@ -208,42 +214,30 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
 
+            else if (searchText.equals("Створити плейлист")){
+                try {
+                    SendMessage message = new SendMessage()
+                            .setChatId(chatId)
+                            .setText(EmojiParser.parseToUnicode(":wave:Введіть назву плейлиста:wave:"));
+                    execute(message);
+                    final String userId ="5kvjla0bhzuuls978uxcyakel";
+                    final String playlistName = update.getMessage().getText();
+                    final CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, playlistName)
+                            .build();
+
+                    try {
+                        final Playlist playlist = createPlaylistRequest.execute();
+
+                        System.out.println("Name: " + playlist.getName());
+                    } catch (IOException | SpotifyWebApiException | ParseException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
 
 
-
-
-
-
-
-
-
-
-//            else if (searchText.equals("Прослухані пісні")){     //Problem with getting listened songs
-//                try {
-//                    final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
-//                    spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-//                    String id = update.getMessage().getText();
-//                    String trackUrl = "https://open.spotify.com/search/" + URLEncoder.encode(id, StandardCharsets.UTF_8);
-//                    ArrayList<String> listenedSongs = new ArrayList<>();
-//                    listenedSongs.add(trackUrl);
-////                    GetCurrentUsersRecentlyPlayedTracksRequest getCurrentUsersRecentlyPlayedTracksRequest = spotifyApi.getCurrentUsersRecentlyPlayedTracks().build();
-////                    PagingCursorbased<PlayHistory> playHistoryPagingCursorbased = getCurrentUsersRecentlyPlayedTracksRequest.execute();
-////                    ArrayList<String> listened = new ArrayList<>();
-////                    listened.add(trackUrl);
-//                    SendMessage message = new SendMessage()
-//                            .setChatId(chatId)
-//                            .setText("Останні прослухані пісні: "  + listenedSongs);
-//                    execute(message);
-//                } catch (TelegramApiException e) {
-//                    e.printStackTrace();
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                } catch (SpotifyWebApiException e) {
-//                    e.printStackTrace();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
         }
     }
 
