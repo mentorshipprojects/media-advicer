@@ -119,7 +119,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                     row.add("Знайти пісню");
                     row.add("Створити плейлист");
                     row.add("Прослухані пісні");
-                    row.add("Знайти виконавця");
                     keyboard.add(row);
 
                     keyboardMarkup.setKeyboard(keyboard);
@@ -180,39 +179,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
 
-            else if (searchText.equals("Знайти виконавця")){
-
-                try {
-                    SendMessage message = new SendMessage()
-                            .setChatId(chatId)
-                            .setText(EmojiParser.parseToUnicode(":man_singer:Введіть ім'я виконавця:man_singer:"));
-                    execute(message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-
-
-
-
-            else if (searchText.matches("[a-zA-Z]+$")){
-                String artistName = update.getMessage().getText();
-                String artistUrl = "https://open.spotify.com/search/" + URLEncoder.encode(artistName, StandardCharsets.UTF_8);
-                try {
-
-
-                    SendMessage message = new SendMessage()
-                            .setChatId(chatId)
-                            .setText(EmojiParser.parseToUnicode(":man_singer: Виконавець: " + artistUrl + " :man_singer:"));
-
-                    execute(message);
-
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
-            }
 
             else if (searchText.equals("Створити плейлист")){
                 try {
